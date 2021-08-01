@@ -24,7 +24,7 @@ class GameManager:
         self.install_path = f'{os.path.expanduser("~")}/{self.name}-server'
         self.daemon_path = f'{os.path.expanduser("~")}/.config/systemd/user'
         self.launch_file = f"{self.install_path}/launch.sh"
-        self.steamcmd_path = "/opt/steam"
+        self.steamcmd_path = "/opt/steamcmd"
         os.makedirs(self.daemon_path, exist_ok=True)
 
     def install(self) -> None:
