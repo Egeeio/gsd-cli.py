@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gsdcli"
-version = "0.3.2"
+version = "0.3.10"
 description = "A cli for installing game servers"
 authors = ["egee-irl <brian@egee.io>"]
 
