@@ -22,9 +22,8 @@ class GameManager:
         self.params = serverObj["launchParams"]
         self.user = getpass.getuser()
         self.install_path = f'{os.path.expanduser("~")}/{self.name}-server'
-        self.daemon_path = f'{os.path.expanduser("~")}/.config/systemd/user'
+        self.daemon_path = "/etc/systemd/system"
         self.launch_file = f"{self.install_path}/launch.sh"
-        self.steamcmd_path = "/opt/steamcmd"
         os.makedirs(self.daemon_path, exist_ok=True)
 
     def install(self) -> None:
@@ -49,7 +48,7 @@ class GameManager:
         if self.installer == "steamcmd":
             subprocess.run(
                 [
-                    f"{self.steamcmd_path}/steamcmd.sh",
+                    "steamcmd",
                     "+login",
                     "anonymous",
                     "+force_install_dir",
@@ -60,28 +59,30 @@ class GameManager:
                     "+quit",
                 ],
                 check=True,
-                cwd=self.steamcmd_path,
             )
 
         if self.backend == "srcds":
-            subprocess.run(["touch", f"{self.install_path}/{self.name}/console.log"])
+            if os.path.exists(f"{self.install_path}/{self.name}/console.log"):
+                os.rename(f"{self.install_path}/{self.name}/console.log", f"{self.install_path}/{self.name}/console.log_{time()}.backup")
+            else:
+                os.makedirs(f"{self.install_path}/{self.name}", exist_ok=True)
+                subprocess.run(["touch", f"{self.install_path}/{self.name}/console.log"])
 
             with open(self.launch_file, "a") as file:
-                file.write(f"\ntail -f {self.launch_file}")
+                file.write(f"\ntail -f {self.install_path}/{self.name}/console.log")
             file.close()
 
 
 @click.group()
-@click.argument("name")
-@click.pass_context
-def gsdcli(ctx, name):
-    ctx.obj = GameManager(name)
+def gsdcli():
+    pass
 
 
 @gsdcli.command()
-@click.pass_context
-def install(ctx):
-    ctx.obj.install()
+@click.argument("name")
+def install(name):
+    game_manager = GameManager(name)
+    game_manager.install()
 
 
 if __name__ == "__main__":
