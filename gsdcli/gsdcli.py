@@ -24,6 +24,7 @@ class GameManager:
         self.install_path = f'{os.path.expanduser("~")}/{self.name}-server'
         self.daemon_path = "/etc/systemd/system"
         self.launch_file = f"{self.install_path}/launch.sh"
+        self.steamcmd_path = "/opt/steamcmd"
         os.makedirs(self.daemon_path, exist_ok=True)
 
     def install(self) -> None:
@@ -41,14 +42,14 @@ class GameManager:
             os.rename(unit_file, f"{unit_file}_{time()}.backup")
         with open(unit_file, "w+") as file:
             file.write(
-                f"[Unit]\nAfter=network.target\nDescription=Daemon for {self.name} dedicated server\n[Install]\nWantedBy=default.target\n[Service]\nType=simple\nWorkingDirectory={self.install_path}\nExecStart=/bin/bash {self.install_path}/launch.sh"
+                f"[Unit]\nAfter=network.target\nDescription=Daemon for {self.name} dedicated server\n[Install]\nWantedBy=default.target\n[Service]\nUser={self.user}\nType=simple\nWorkingDirectory={self.install_path}\nExecStart=/bin/bash {self.install_path}/launch.sh"
             )
         file.close()
 
         if self.installer == "steamcmd":
             subprocess.run(
                 [
-                    "steamcmd",
+                    f"{self.steamcmd_path}/steamcmd.sh",
                     "+login",
                     "anonymous",
                     "+force_install_dir",
@@ -59,6 +60,7 @@ class GameManager:
                     "+quit",
                 ],
                 check=True,
+                cwd=self.steamcmd_path,
             )
 
         if self.backend == "srcds":
